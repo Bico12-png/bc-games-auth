@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BC Games - Sistema de Autenticação</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab-content {
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(254, 202, 87, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48dbfb, #0abde3);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(72, 219, 251, 0.3);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-used {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-paused {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-inactive {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-container .form-control {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-container select {
+            min-width: 150px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎮 BC Games</h1>
+            <p>Sistema de Gerenciamento de Autenticação</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="nav-tab" onclick="showTab('create-keys')">🔑 Criar Keys</button>
+                <button class="nav-tab" onclick="showTab('manage-keys')">⚙️ Gerenciar Keys</button>
+                <button class="nav-tab" onclick="showTab('logs')">📋 Logs</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-pane active">
+                <div class="tab-content">
+                    <h2>📊 Estatísticas do Sistema</h2>
+                    <div id="stats-container" class="loading">Carregando estatísticas...</div>
+                </div>
+            </div>
+
+            <!-- Create Keys Tab -->
+            <div id="create-keys" class="tab-pane">
+                <div class="tab-content">
+                    <h2>🔑 Criar Novas Keys</h2>
+                    <div id="create-alert"></div>
+                    
+                    <form id="create-keys-form">
+                        <div class="form-group">
+                            <label for="quantity">Quantidade de Keys:</label>
+                            <input type="number" id="quantity" class="form-control" min="1" max="100" value="1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="expiration-days">Dias de Expiração:</label>
+                            <input type="number" id="expiration-days" class="form-control" min="1" max="365" value="30" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Criar Keys</button>
+                    </form>
+                    
+                    <div id="created-keys-container"></div>
+                </div>
+            </div>
+
+            <!-- Manage Keys Tab -->
+            <div id="manage-keys" class="tab-pane">
+                <div class="tab-content">
+                    <h2>⚙️ Gerenciar Keys</h2>
+                    <div id="manage-alert"></div>
+                    
+                    <div class="search-container">
+                        <input type="text" id="search-key" class="form-control" placeholder="Buscar por Key ID...">
+                        <select id="status-filter" class="form-control">
+                            <option value="">Todos os Status</option>
+                            <option value="active">Ativas</option>
+                            <option value="paused">Pausadas</option>
+                            <option value="inactive">Inativas</option>
+                            <option value="used">Em Uso</option>
+                            <option value="unused">Não Utilizadas</option>
+                        </select>
+                        <button onclick="searchKeys()" class="btn btn-primary">🔍 Buscar</button>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <button onclick="pauseAllKeys(true)" class="btn btn-warning">⏸️ Pausar Todas</button>
+                        <button onclick="pauseAllKeys(false)" class="btn btn-success">▶️ Despausar Todas</button>
+                        <button onclick="deleteAllKeys()" class="btn btn-danger">🗑️ Apagar Todas</button>
+                    </div>
+                    
+                    <div id="keys-container" class="loading">Carregando keys...</div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs" class="tab-pane">
+                <div class="tab-content">
+                    <h2>📋 Logs de Acesso</h2>
+                    
+                    <div class="search-container">
+                        <input type="text" id="search-log-key" class="form-control" placeholder="Filtrar por Key ID...">
+                        <select id="success-filter" class="form-control">
+                            <option value="">Todos os Logs</option>
+                            <option value="true">Apenas Sucessos</option>
+                        </select>
+                        <button onclick="searchLogs()" class="btn btn-primary">🔍 Filtrar</button>
+                    </div>
+                    
+                    <div id="logs-container" class="loading">Carregando logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let currentKeysPage = 1;
+        let currentLogsPage = 1;
+        const API_BASE = '/api';
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadKeys();
+            loadLogs();
+            
+            // Form de criar keys
+            document.getElementById('create-keys-form').addEventListener('submit', createKeys);
+        });
+
+        // Navegação entre tabs
+        function showTab(tabName) {
+            // Remover classe active de todas as tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+            
+            // Ativar tab selecionada
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // Recarregar dados se necessário
+            if (tabName === 'dashboard') {
+                loadStats();
+            } else if (tabName === 'manage-keys') {
+                loadKeys();
+            } else if (tabName === 'logs') {
+                loadLogs();
+            }
+        }
+
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStats(data.stats);
+                } else {
+                    document.getElementById('stats-container').innerHTML = 
+                        `<div class="alert alert-danger">Erro ao carregar estatísticas: ${data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('stats-container').innerHTML = 
+                    `<div class="alert alert-danger">Erro de conexão: ${error.message}</div>`;
+            }
+        }
+
+        // Exibir estatísticas
+        function displayStats(stats) {
+            const container = document.getElementById('stats-container');
+            container.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>${stats.keys.total}</h3>
+                        <p>Total de Keys</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.keys.active}</h3>
+                        <p>Keys Ativas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.keys.used}</h3>
+                        <p>Keys em Uso</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.keys.available}</h3>
+                        <p>Keys Disponíveis</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.keys.paused}</h3>
+                        <p>Keys Pausadas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.keys.expired}</h3>
+                        <p>Keys Expiradas</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.logins.total}</h3>
+                        <p>Total de Logins</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>${stats.logins.success_rate}%</h3>
+                        <p>Taxa de Sucesso</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Criar keys
+        async function createKeys(event) {
+            event.preventDefault();
+            
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const expirationDays = parseInt(document.getElementById('expiration-days').value);
+            const alertContainer = document.getElementById('create-alert');
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/keys`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        quantity: quantity,
+                        expiration_days: expirationDays
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alertContainer.innerHTML = 
+                        `<div class="alert alert-success">${data.message}</div>`;
+                    
+                    // Exibir keys criadas
+                    const keysHtml = data.keys.map(key => `<code>${key}</code>`).join(', ');
+                    document.getElementById('created-keys-container').innerHTML = `
+                        <div class="table-container" style="margin-top: 20px;">
+                            <h3>Keys Criadas:</h3>
+                            <p style="padding: 15px; background: #f8f9fa; border-radius: 10px; margin-top: 10px;">
+                                ${keysHtml}
+                            </p>
+                        </div>
+                    `;
+                    
+                    // Limpar formulário
+                    document.getElementById('create-keys-form').reset();
+                    document.getElementById('quantity').value = 1;
+                    document.getElementById('expiration-days').value = 30;
+                    
+                    // Recarregar estatísticas
+                    loadStats();
+                } else {
+                    alertContainer.innerHTML = 
+                        `<div class="alert alert-danger">Erro: ${data.error}</div>`;
+                }
+            } catch (error) {
+                alertContainer.innerHTML = 
+                    `<div class="alert alert-danger">Erro de conexão: ${error.message}</div>`;
+            }
+        }
+
+        // Carregar keys
+        async function loadKeys(page = 1) {
+            currentKeysPage = page;
+            const search = document.getElementById('search-key')?.value || '';
+            const status = document.getElementById('status-filter')?.value || '';
+            
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    per_page: 20,
+                    search: search,
+                    status: status
+                });
+                
+                const response = await fetch(`${API_BASE}/admin/keys?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayKeys(data.keys, data.pagination);
+                } else {
+                    document.getElementById('keys-container').innerHTML = 
+                        `<div class="alert alert-danger">Erro ao carregar keys: ${data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('keys-container').innerHTML = 
+                    `<div class="alert alert-danger">Erro de conexão: ${error.message}</div>`;
+            }
+        }
+
+        // Exibir keys
+        function displayKeys(keys, pagination) {
+            const container = document.getElementById('keys-container');
+            
+            if (keys.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Nenhuma key encontrada.</div>';
+                return;
+            }
+            
+            const keysHtml = keys.map(key => `
+                <tr>
+                    <td><code>${key.key_id}</code></td>
+                    <td><span class="status-badge status-${key.status.toLowerCase().replace(' ', '-')}">${key.status}</span></td>
+                    <td>${key.expiration_days} dias</td>
+                    <td>${key.hwid || 'N/A'}</td>
+                    <td>${key.created_at ? new Date(key.created_at).toLocaleString('pt-BR') : 'N/A'}</td>
+                    <td>${key.first_login_at ? new Date(key.first_login_at).toLocaleString('pt-BR') : 'Nunca'}</td>
+                    <td>
+                        <button onclick="resetKeyHwid('${key.key_id}')" class="btn btn-warning" style="margin-right: 5px; padding: 5px 10px; font-size: 0.8rem;">Reset HWID</button>
+                        <button onclick="deleteKey('${key.key_id}')" class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;">Apagar</button>
+                    </td>
+                </tr>
+            `).join('');
+            
+            const paginationHtml = `
+                <div class="pagination">
+                    <button onclick="loadKeys(${pagination.page - 1})" ${!pagination.has_prev ? 'disabled' : ''}>« Anterior</button>
+                    <span>Página ${pagination.page} de ${pagination.pages}</span>
+                    <button onclick="loadKeys(${pagination.page + 1})" ${!pagination.has_next ? 'disabled' : ''}>Próxima »</button>
+                </div>
+            `;
+            
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Key ID</th>
+                                <th>Status</th>
+                                <th>Expiração</th>
+                                <th>HWID</th>
+                                <th>Criada em</th>
+                                <th>Primeiro Login</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${keysHtml}
+                        </tbody>
+                    </table>
+                </div>
+                ${paginationHtml}
+            `;
+        }
+
+        // Buscar keys
+        function searchKeys() {
+            loadKeys(1);
+        }
+
+        // Resetar HWID de uma key
+        async function resetKeyHwid(keyId) {
+            if (!confirm(`Tem certeza que deseja resetar o HWID da key ${keyId}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/keys/${keyId}/reset-hwid`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('manage-alert', 'success', data.message);
+                    loadKeys(currentKeysPage);
+                    loadStats();
+                } else {
+                    showAlert('manage-alert', 'danger', `Erro: ${data.error}`);
+                }
+            } catch (error) {
+                showAlert('manage-alert', 'danger', `Erro de conexão: ${error.message}`);
+            }
+        }
+
+        // Apagar key específica
+        async function deleteKey(keyId) {
+            if (!confirm(`Tem certeza que deseja apagar a key ${keyId}?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/keys/${keyId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('manage-alert', 'success', data.message);
+                    loadKeys(currentKeysPage);
+                    loadStats();
+                } else {
+                    showAlert('manage-alert', 'danger', `Erro: ${data.error}`);
+                }
+            } catch (error) {
+                showAlert('manage-alert', 'danger', `Erro de conexão: ${error.message}`);
+            }
+        }
+
+        // Pausar/despausar todas as keys
+        async function pauseAllKeys(pause) {
+            const action = pause ? 'pausar' : 'despausar';
+            if (!confirm(`Tem certeza que deseja ${action} todas as keys?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/keys/pause-all`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ pause: pause })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('manage-alert', 'success', data.message);
+                    loadKeys(currentKeysPage);
+                    loadStats();
+                } else {
+                    showAlert('manage-alert', 'danger', `Erro: ${data.error}`);
+                }
+            } catch (error) {
+                showAlert('manage-alert', 'danger', `Erro de conexão: ${error.message}`);
+            }
+        }
+
+        // Apagar todas as keys
+        async function deleteAllKeys() {
+            if (!confirm('ATENÇÃO: Tem certeza que deseja apagar TODAS as keys? Esta ação não pode ser desfeita!')) {
+                return;
+            }
+            
+            if (!confirm('Confirme novamente: Apagar TODAS as keys permanentemente?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/admin/keys/delete-all`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('manage-alert', 'success', data.message);
+                    loadKeys(1);
+                    loadStats();
+                } else {
+                    showAlert('manage-alert', 'danger', `Erro: ${data.error}`);
+                }
+            } catch (error) {
+                showAlert('manage-alert', 'danger', `Erro de conexão: ${error.message}`);
+            }
+        }
+
+        // Carregar logs
+        async function loadLogs(page = 1) {
+            currentLogsPage = page;
+            const keyId = document.getElementById('search-log-key')?.value || '';
+            const successOnly = document.getElementById('success-filter')?.value || '';
+            
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    per_page: 50,
+                    key_id: keyId,
+                    success_only: successOnly
+                });
+                
+                const response = await fetch(`${API_BASE}/admin/logs?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayLogs(data.logs, data.pagination);
+                } else {
+                    document.getElementById('logs-container').innerHTML = 
+                        `<div class="alert alert-danger">Erro ao carregar logs: ${data.error}</div>`;
+                }
+            } catch (error) {
+                document.getElementById('logs-container').innerHTML = 
+                    `<div class="alert alert-danger">Erro de conexão: ${error.message}</div>`;
+            }
+        }
+
+        // Exibir logs
+        function displayLogs(logs, pagination) {
+            const container = document.getElementById('logs-container');
+            
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Nenhum log encontrado.</div>';
+                return;
+            }
+            
+            const logsHtml = logs.map(log => `
+                <tr>
+                    <td><code>${log.key_id}</code></td>
+                    <td><span class="status-badge ${log.success ? 'status-available' : 'status-expired'}">${log.success ? 'Sucesso' : 'Falha'}</span></td>
+                    <td>${log.hwid}</td>
+                    <td>${log.ip_address || 'N/A'}</td>
+                    <td>${log.login_at ? new Date(log.login_at).toLocaleString('pt-BR') : 'N/A'}</td>
+                    <td>${log.error_message || 'N/A'}</td>
+                </tr>
+            `).join('');
+            
+            const paginationHtml = `
+                <div class="pagination">
+                    <button onclick="loadLogs(${pagination.page - 1})" ${!pagination.has_prev ? 'disabled' : ''}>« Anterior</button>
+                    <span>Página ${pagination.page} de ${pagination.pages}</span>
+                    <button onclick="loadLogs(${pagination.page + 1})" ${!pagination.has_next ? 'disabled' : ''}>Próxima »</button>
+                </div>
+            `;
+            
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Key ID</th>
+                                <th>Status</th>
+                                <th>HWID</th>
+                                <th>IP</th>
+                                <th>Data/Hora</th>
+                                <th>Erro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logsHtml}
+                        </tbody>
+                    </table>
+                </div>
+                ${paginationHtml}
+            `;
+        }
+
+        // Buscar logs
+        function searchLogs() {
+            loadLogs(1);
+        }
+
+        // Mostrar alerta
+        function showAlert(containerId, type, message) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
+
